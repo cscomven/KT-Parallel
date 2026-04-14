@@ -6,29 +6,37 @@
     <link rel="stylesheet" href="style.css">
     <style>
         /* Custom layout to ensure the split screen works offline */
-        body { margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; background-color: #1a365d; }
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%; /* Force the browser to fill the screen */
+            overflow: hidden; /* Prevent the whole page from bouncing */
+            background-color: #1a365d; /* Matches header to prevent white bars */
+        }
+
         header {
-            background: #1a365d;
-            padding: 5px 10px;
+            width: 100%;
             display: flex;
-            flex-wrap: wrap; /* Allows items to move to a second line if needed */
-            align-items: center;
-            justify-content: space-between;
+            background: #1a365d;
             color: white;
-            min-height: 50px;
-                /* THE FIX: These add padding ONLY when the notch is present */
-            padding-top: env(safe-area-inset-top, 5px);
-            padding-left: env(safe-area-inset-left, 15px);
-            padding-right: env(safe-area-inset-right, 15px);
-            
-            /* Adjust height to account for the extra padding */
-            min-height: 50px; 
+            /* Use 'max' to choose the larger of the safe area or our standard 5px */
+            padding-top: max(env(safe-area-inset-top), 5px);
+            padding-left: max(env(safe-area-inset-left), 15px);
+            padding-right: max(env(safe-area-inset-right), 15px);
             box-sizing: border-box;
+            flex-shrink: 0; /* Prevents header from squishing */
         }
+
         .reader-container {
-            height: calc(100vh - 50px);
-            background-color: white; /* Keep the actual reading area white */
-        }
+            display: flex;
+            flex: 1; /* Takes up all remaining space */
+            width: 100%;
+            height: 100%; /* Ensures it fills the space below header */
+            background: white;
+            overflow: hidden;
+        }        
+
         /* On Mobile, we'll shrink the groups and hide the 'Scope' to save space */
         @media (max-width: 600px) {
             header {
@@ -195,7 +203,7 @@
     
     </style>
 </head>
-<body>
+<body style="display: flex; flex-direction: column;">
     <header>
         <div class="nav-group">
             <select id="bookSelect"></select>
@@ -471,6 +479,17 @@
         chapterSelect.onchange = (e) => { currentChapterIdx = parseInt(e.target.value); renderChapter(); };
         versionLeft.onchange = renderChapter;
         versionRight.onchange = renderChapter;
+
+        window.addEventListener('orientationchange', () => {
+            // A tiny delay allows Safari to finish its internal rotation
+            setTimeout(() => {
+                window.scrollTo(0, 0); // Forces the address bar/margins to reset
+                document.body.style.height = window.innerHeight + 'px';
+            }, 200);
+        });
+
+        // Run it once on load to lock it in
+        window.dispatchEvent(new Event('orientationchange'));
 
         loadFiles();
 
