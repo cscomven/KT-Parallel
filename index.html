@@ -2,8 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Parallel Bible</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">      <title>Parallel Bible</title>
     <link rel="stylesheet" href="style.css">
     <style>
         /* Custom layout to ensure the split screen works offline */
@@ -17,8 +16,19 @@
             justify-content: space-between;
             color: white;
             min-height: 50px;
+                /* THE FIX: These add padding ONLY when the notch is present */
+            padding-top: env(safe-area-inset-top, 5px);
+            padding-left: env(safe-area-inset-left, 15px);
+            padding-right: env(safe-area-inset-right, 15px);
+            
+            /* Adjust height to account for the extra padding */
+            min-height: 50px; 
+            box-sizing: border-box;
         }
-
+        .reader-container {
+            height: calc(100vh - 50px);
+            background-color: white; /* Keep the actual reading area white */
+        }
         /* On Mobile, we'll shrink the groups and hide the 'Scope' to save space */
         @media (max-width: 600px) {
             header {
