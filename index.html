@@ -51,6 +51,7 @@
             box-sizing: border-box;
             background-color: white !important;
             color: black !important;
+            position: relative; 
         }
 
         /* Ensure groups stay centered internally */
@@ -437,32 +438,34 @@
 
         // 3. SCROLL SYNCHRONIZATION
         const syncScroll = (source, target, targetPrefix) => {
+            // If we are already syncing or this isn't the pane being touched, stop.
             if (isSyncing || activePane !== source) return;
-            
-            // RequestAnimationFrame makes the scroll much smoother on iPhones
+
             window.requestAnimationFrame(() => {
                 isSyncing = true;
+                const sourceVerses = source.querySelectorAll('.verse');
                 const sourceRect = source.getBoundingClientRect();
-                const verses = source.querySelectorAll('.verse');
+                
                 let activeIdx = 0;
 
-                if (source.scrollTop < 10) {
-                    target.scrollTo({ top: 0 });
-                } else {
-                    for (let i = 0; i < verses.length; i++) {
-                        if (verses[i].getBoundingClientRect().top >= sourceRect.top - 20) {
-                            activeIdx = i;
-                            break;
-                        }
-                    }
-                    const targetVerse = target.querySelector(`#${targetPrefix}${activeIdx}`);
-                    if (targetVerse) {
-                        target.scrollTop = targetVerse.offsetTop - 20;
+                // Find which verse is at the top of the CURRENT viewable area
+                for (let i = 0; i < sourceVerses.length; i++) {
+                    // We check against the top of the source pane, not the screen
+                    if (sourceVerses[i].getBoundingClientRect().top >= sourceRect.top - 10) {
+                        activeIdx = i;
+                        break;
                     }
                 }
-                
-                // Short delay to release the lock
-                setTimeout(() => { isSyncing = false; }, 50);
+
+                // Find the matching verse in the other pane
+                const targetVerse = target.querySelector(`#${targetPrefix}${activeIdx}`);
+                if (targetVerse) {
+                    // OffsetTop is relative to the parent container, which is perfect for us
+                    target.scrollTop = targetVerse.offsetTop;
+                }
+
+                // Release the lock quickly for a responsive feel
+                setTimeout(() => { isSyncing = false; }, 20);
             });
         };
 
