@@ -2,8 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">      <title>Parallel Bible</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">    <link rel="stylesheet" href="style.css">
     <style>
         /* Custom layout to ensure the split screen works offline */
         html, body {
@@ -19,16 +20,14 @@
             background: #1a365d;
             display: flex;
             align-items: center;
-            /* This pushes Nav to Left, Search to Middle, Versions to Right */
-            justify-content: space-between; 
-            color: white;
-            padding: 5px 20px;
-            /* Add safe area for the header too */
-            padding-top: max(env(safe-area-inset-top), 5px);
+            justify-content: space-between;
+            /* This 'max' function ensures that if safe-area is 0 (desktop), 
+            it uses 10px. If it's a notch (iPhone), it uses the notch size. */
+            padding-top: max(env(safe-area-inset-top), 10px);
+            padding-bottom: 10px;
             padding-left: max(env(safe-area-inset-left), 20px);
             padding-right: max(env(safe-area-inset-right), 20px);
-            height: auto;
-            min-height: 50px;
+            box-sizing: border-box;
         }
 
         /* Ensure groups stay centered internally */
@@ -45,10 +44,10 @@
             flex: 1;
             width: 100%;
             background: white;
-            /* This ensures that if you're in landscape, the whole container 
-            respects the side cutouts */
-            padding-left: env(safe-area-inset-left);
-            padding-right: env(safe-area-inset-right);
+            /* Force the container to respect the 'Notch' on both sides */
+            padding-left: env(safe-area-inset-left) !important;
+            padding-right: env(safe-area-inset-right) !important;
+            box-sizing: border-box;
         }     
 
         /* MOBILE SPECIFIC OVERRIDE */
@@ -119,6 +118,10 @@
             color: #000000 !important;
             font-size: 1.25rem;
             line-height: 1.75;
+            /* We add an extra 10px of margin to the text itself 
+            to ensure the 'Safe Area' has a comfortable cushion */
+            margin-left: 10px;
+            margin-right: 10px;
         }
 
         /* Let's make the right pane slightly different just for subtle contrast, 
