@@ -62,7 +62,57 @@
         }
 
 
+        .header-actions {
+            display: flex;
+            gap: 15px;
+        }
 
+        .icon-btn {
+            background: transparent;
+            border: 1px solid #ffffff44;
+            color: white;
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        /* The Overlay Styling */
+        .overlay {
+            display: none; /* Hidden by default */
+            position: absolute;
+            top: 50px; /* Right under the header */
+            left: 0;
+            right: 0;
+            background: #2d3748;
+            padding: 10px;
+            z-index: 2000;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        .overlay-content {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .font-tools button {
+            padding: 10px 20px;
+            background: #4a5568;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: #a0aec0;
+            font-size: 1.2rem;
+            margin-left: 20px;
+            cursor: pointer;
+        }    
  
 
         /* MOBILE SPECIFIC OVERRIDE */
@@ -215,16 +265,39 @@
             <select id="bookSelect"></select>
             <select id="chapterSelect"></select>
         </div>
-            <div class="search-group"><select id="searchScope"><option value="all">All Bible</option><option value="ot">OT</option><option value="nt">NT</option></select><input type="text" id="searchInput" placeholder="Search..." onkeydown="if(event.key==='Enter') runSearch()"><button onclick="runSearch()">Search</button></div>
+
+        <div class="header-actions">
+            <button onclick="toggleOverlay('searchOverlay')" class="icon-btn">🔍</button>
+            <button onclick="toggleOverlay('fontOverlay')" class="icon-btn">Aa</button>
+        </div>
+
         <div class="version-group">
-            <select id="versionLeft">
-                <option value="kjv">KJV</option>
-            </select>
-            <select id="versionRight">
-                <option value="vie1934">1934</option>
-            </select>
+            <select id="versionLeft"><option value="kjv">KJV</option></select>
+            <select id="versionRight"><option value="vie1934">1934</option></select>
         </div>
     </header>
+
+    <div id="searchOverlay" class="overlay">
+        <div class="overlay-content">
+            <select id="searchScope">
+                <option value="all">All</option>
+                <option value="ot">OT</option>
+                <option value="nt">NT</option>
+            </select>
+            <input type="text" id="searchInput" placeholder="Search..." onkeydown="if(event.key==='Enter') { runSearch(); toggleOverlay('searchOverlay'); }">
+            <button onclick="runSearch(); toggleOverlay('searchOverlay');">Search</button>
+            <button onclick="toggleOverlay('searchOverlay')" class="close-btn">✕</button>
+        </div>
+    </div>
+
+    <div id="fontOverlay" class="overlay">
+        <div class="overlay-content font-tools">
+            <span>Font Size:</span>
+            <button onclick="changeFontSize(-2)">A-</button>
+            <button onclick="changeFontSize(2)">A+</button>
+            <button onclick="toggleOverlay('fontOverlay')" class="close-btn">✕</button>
+        </div>
+    </div>
     <div class="reader-container">
         <div id="leftPane" class="pane"></div>
         <div id="rightPane" class="pane"></div>
@@ -490,6 +563,30 @@
         chapterSelect.onchange = (e) => { currentChapterIdx = parseInt(e.target.value); renderChapter(); };
         versionLeft.onchange = renderChapter;
         versionRight.onchange = renderChapter;
+
+        let currentFontSize = 20; // Matches your 1.25rem start
+
+        function toggleOverlay(id) {
+            const el = document.getElementById(id);
+            // Close other overlays first
+            document.querySelectorAll('.overlay').forEach(ov => {
+                if(ov.id !== id) ov.style.display = 'none';
+            });
+            el.style.display = (el.style.display === 'block') ? 'none' : 'block';
+        }
+
+        function changeFontSize(delta) {
+            currentFontSize += delta;
+            // Keep font within readable limits
+            if (currentFontSize < 12) currentFontSize = 12;
+            if (currentFontSize > 40) currentFontSize = 40;
+            
+            document.querySelectorAll('.pane').forEach(p => {
+                p.style.fontSize = currentFontSize + 'px';
+            });
+        }
+
+
 
         function fixLayout() {
             // Reset the height to the actual visual viewport
