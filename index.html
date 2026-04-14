@@ -86,12 +86,12 @@
             width: 50%;
             overflow-y: auto;
             padding: 20px;
-            background-color: #ffffff !important; /* Forces background to white */
-            color: #000000 !important;           /* Forces text to black */
-            font-size: 1.1rem;
-            line-height: 1.7;
+            background-color: #ffffff !important;
+            color: #000000 !important;
+            font-size: 1.25rem; 
+            line-height: 1.75;
             position: relative;
-            -webkit-overflow-scrolling: touch;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
         /* Let's make the right pane slightly different just for subtle contrast, 
@@ -110,6 +110,9 @@
             color: #3182ce; /* Keeps the verse numbers blue so they stay distinct */
             font-weight: bold;
             font-size: 0.85em;
+            margin-right: 10px; 
+            display: inline-block; 
+            vertical-align: baseline;
         }
         .back-btn {
             background: #e53e3e; /* Reddish color for clarity */
@@ -400,8 +403,8 @@
 
             leftCh.verses.forEach((v, i) => {
                 const rv = rightCh.verses[i] || { text: "...", verse: v.verse };
-                leftPane.innerHTML += `<div class="verse" id="L${i}"><span class="v-num">${v.verse}</span>${decodeUnicode(v.text)}</div>`;
-                rightPane.innerHTML += `<div class="verse" id="R${i}"><span class="v-num">${rv.verse}</span>${decodeUnicode(rv.text)}</div>`;
+                leftPane.innerHTML += `<div class="verse" id="L${i}"><span class="v-num">${v.verse}</span><span>${decodeUnicode(v.text)}</span></div>`;
+                rightPane.innerHTML += `<div class="verse" id="R${i}"><span class="v-num">${rv.verse}</span><span>${decodeUnicode(rv.text)}</span></div>`;
             });
 
             leftPane.scrollTop = 0;
