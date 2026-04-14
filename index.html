@@ -6,28 +6,51 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">    <link rel="stylesheet" href="style.css">
     <style>
-        /* Custom layout to ensure the split screen works offline */
-        html, body {
+       html, body {
             margin: 0;
             padding: 0;
             width: 100%;
-            height: 100%; /* Force the browser to fill the screen */
-            overflow: hidden; /* Prevent the whole page from bouncing */
-            background-color: #1a365d; /* Matches header to prevent white bars */
+            height: 100dvh; /* Uses 'Dynamic Viewport Height' for mobile */
+            overflow: hidden; /* Prevents the whole app from bouncing */
+            display: flex;
+            flex-direction: column;
+            background-color: #1a365d;
         }
 
         header {
             background: #1a365d;
             display: flex;
+            flex-wrap: wrap; /* Allows wrapping on small screens */
             align-items: center;
             justify-content: space-between;
-            /* This 'max' function ensures that if safe-area is 0 (desktop), 
-            it uses 10px. If it's a notch (iPhone), it uses the notch size. */
+            padding: 10px 15px;
+            /* Respects the status bar on Home Screen apps */
             padding-top: max(env(safe-area-inset-top), 10px);
-            padding-bottom: 10px;
-            padding-left: max(env(safe-area-inset-left), 20px);
-            padding-right: max(env(safe-area-inset-right), 20px);
+            padding-left: max(env(safe-area-inset-left), 15px);
+            padding-right: max(env(safe-area-inset-right), 15px);
+            flex-shrink: 0; /* Prevents the header from being squashed */
+            z-index: 1000;
+        }
+
+        .reader-container {
+            display: flex;
+            flex: 1; /* Fills the remaining screen space */
+            width: 100%;
+            background: white;
+            overflow: hidden; /* Important: The container doesn't scroll, the panes do */
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
+        }
+
+        .pane {
+            flex: 1;
+            height: 100%; /* Fills the container */
+            overflow-y: auto !important; /* Force scrolling to work */
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling for iOS */
+            padding: 20px;
             box-sizing: border-box;
+            background-color: white !important;
+            color: black !important;
         }
 
         /* Ensure groups stay centered internally */
@@ -39,45 +62,29 @@
 
 
 
-        .reader-container {
-            display: flex;
-            flex: 1;
-            width: 100%;
-            background: white;
-            /* Force the container to respect the 'Notch' on both sides */
-            padding-left: env(safe-area-inset-left) !important;
-            padding-right: env(safe-area-inset-right) !important;
-            box-sizing: border-box;
-        }     
+ 
 
         /* MOBILE SPECIFIC OVERRIDE */
-        @media (max-width: 768px) {
+        @media (max-width: 600px) {
             header {
-                flex-direction: column; /* Stacks navigation and search on phones */
-                gap: 8px;
-                padding-bottom: 10px;
+                justify-content: center;
+                gap: 10px;
             }
             
+            .nav-group, .version-group {
+                justify-content: center;
+            }
+
             .search-group {
                 width: 100%;
                 justify-content: center;
             }
             
-            #searchScope {
-                display: none; /* Keeps search bar slim on mobile */
-            }
-        
-
             #searchInput {
-                width: 60%; /* Takes up more width on the second row */
-                border-left: 1px solid #cbd5e0;
-                border-radius: 4px 0 0 4px;
-            }
-            
-            .nav-group select {
-                max-width: 100px; /* Prevents long book names from pushing everything off */
+                width: 140px; /* Slimmer for portrait mobile */
             }
         }
+        
         header select, 
         #searchInput,
         .search-group button {
@@ -108,20 +115,6 @@
             color: #1a365d; /* A nice deep blue for the title */
             border-bottom: 2px solid #e2e8f0;
             padding-bottom: 8px;
-        }
-        .pane {
-            flex: 1;
-            overflow-y: auto;
-            /* Add a bit of extra padding so text isn't flush against the cutouts */
-            padding: 20px 25px; 
-            background-color: #ffffff !important;
-            color: #000000 !important;
-            font-size: 1.25rem;
-            line-height: 1.75;
-            /* We add an extra 10px of margin to the text itself 
-            to ensure the 'Safe Area' has a comfortable cushion */
-            margin-left: 10px;
-            margin-right: 10px;
         }
 
         /* Let's make the right pane slightly different just for subtle contrast, 
@@ -445,29 +438,32 @@
         // 3. SCROLL SYNCHRONIZATION
         const syncScroll = (source, target, targetPrefix) => {
             if (isSyncing || activePane !== source) return;
-            isSyncing = true;
+            
+            // RequestAnimationFrame makes the scroll much smoother on iPhones
+            window.requestAnimationFrame(() => {
+                isSyncing = true;
+                const sourceRect = source.getBoundingClientRect();
+                const verses = source.querySelectorAll('.verse');
+                let activeIdx = 0;
 
-            const sourceRect = source.getBoundingClientRect();
-            const verses = source.querySelectorAll('.verse');
-            let activeIdx = 0;
-
-            // Check if at the very top
-            if (source.scrollTop < 10) {
-                target.scrollTo({ top: 0, behavior: 'smooth' });
-            } else {
-                for (let i = 0; i < verses.length; i++) {
-                    if (verses[i].getBoundingClientRect().top >= sourceRect.top - 20) {
-                        activeIdx = i;
-                        break;
+                if (source.scrollTop < 10) {
+                    target.scrollTo({ top: 0 });
+                } else {
+                    for (let i = 0; i < verses.length; i++) {
+                        if (verses[i].getBoundingClientRect().top >= sourceRect.top - 20) {
+                            activeIdx = i;
+                            break;
+                        }
+                    }
+                    const targetVerse = target.querySelector(`#${targetPrefix}${activeIdx}`);
+                    if (targetVerse) {
+                        target.scrollTop = targetVerse.offsetTop - 20;
                     }
                 }
-                const targetVerse = target.querySelector(`#${targetPrefix}${activeIdx}`);
-                if (targetVerse) {
-                    const targetOffset = targetVerse.offsetTop - 20;
-                    target.scrollTo({ top: targetOffset, behavior: 'smooth' });
-                }
-            }
-            setTimeout(() => { isSyncing = false; }, 150);
+                
+                // Short delay to release the lock
+                setTimeout(() => { isSyncing = false; }, 50);
+            });
         };
 
         // Listeners
