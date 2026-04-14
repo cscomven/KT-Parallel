@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Parallel Bible</title>
     <link rel="stylesheet" href="style.css">
     <style>
@@ -10,25 +10,42 @@
         body { margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         header {
             background: #1a365d;
-            /* Reduced vertical padding from 10px to 5px */
-            padding: 5px 15px; 
+            padding: 5px 10px;
             display: flex;
+            flex-wrap: wrap; /* Allows items to move to a second line if needed */
             align-items: center;
             justify-content: space-between;
-            gap: 15px;
             color: white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            z-index: 100;
-            /* Explicitly setting a smaller height */
-            height: 50px; 
-            box-sizing: border-box;
+            min-height: 50px;
         }
 
-        .nav-group, .search-group, .version-group {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            height: 100%;
+        /* On Mobile, we'll shrink the groups and hide the 'Scope' to save space */
+        @media (max-width: 600px) {
+            header {
+                justify-content: space-around;
+                padding: 10px 5px;
+            }
+            
+            .search-group {
+                order: 3; /* Moves search to a second row on small phones */
+                width: 100%;
+                justify-content: center;
+                margin-top: 5px;
+            }
+
+            #searchScope {
+                display: none; /* Hides 'All Bible/OT/NT' on small screens to fit the box */
+            }
+
+            #searchInput {
+                width: 60%; /* Takes up more width on the second row */
+                border-left: 1px solid #cbd5e0;
+                border-radius: 4px 0 0 4px;
+            }
+            
+            .nav-group select {
+                max-width: 100px; /* Prevents long book names from pushing everything off */
+            }
         }
         header select, 
         #searchInput,
@@ -421,10 +438,21 @@
         };
 
         // Listeners
+        // Desktop Mouse Support
         leftPane.onmouseenter = () => { activePane = leftPane; };
         rightPane.onmouseenter = () => { activePane = rightPane; };
-        leftPane.onscroll = () => syncScroll(leftPane, rightPane, 'R');
-        rightPane.onscroll = () => syncScroll(rightPane, leftPane, 'L');
+
+        // Mobile Touch Support (The Fix)
+        leftPane.ontouchstart = () => { activePane = leftPane; };
+        rightPane.ontouchstart = () => { activePane = rightPane; };
+
+        // Ensure the scroll logic is using the passive: true option for mobile performance
+        leftPane.addEventListener('scroll', () => syncScroll(leftPane, rightPane, 'R'), { passive: true });
+        rightPane.addEventListener('scroll', () => syncScroll(rightPane, leftPane, 'L'), { passive: true });
+
+        // Remove the old .onscroll assignments if they are still there
+        leftPane.onscroll = null;
+        rightPane.onscroll = null;
 
         bookSelect.onchange = (e) => { currentBookIdx = parseInt(e.target.value); currentChapterIdx = 0; updateChapterDropdown(); renderChapter(); };
         chapterSelect.onchange = (e) => { currentChapterIdx = parseInt(e.target.value); renderChapter(); };
